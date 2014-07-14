@@ -1,0 +1,25 @@
+#!/bin/bash
+system_profiler SPBluetoothDataType|tr -d '\n'| sed -e 's/              /!/g' -e 's/    /\
+/g'|awk '
+BEGIN { FS= "!"; }
+/Mouse.*Battery/ {
+        for( i = 1; i < NF; i++){
+                if( $i ~ /Battery/ ) {
+                        sub("Battery Level: ","",$i);
+                        sub("%","",$i);
+                        percent=$i;
+                }
+        }
+} END {
+        percent = percent + 0;
+        if (percent <= 5) {
+                print "CRITICAL: Mouse has an out-of-cheese-error";exit 2;
+        } else if (percent <= 10) { 
+		print "WARNING: Mouse Battery "percent"%";exit 1;}
+        else { 
+		print "OK: Mouse Battery "percent"%"; exit 0;
+	}
+}'
+ret=$?
+if [[ $ret -eq 1 ]]; then say -v Vicki 'The batteries in my mouse are low and that makes me sad'; fi
+exit $ret
